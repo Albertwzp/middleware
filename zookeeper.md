@@ -38,3 +38,4 @@ JVMFLAGS="$JVMFLAGS -javaagent:$JMX_DIR/jmx_prometheus_javaagent-0.3.1.jar=9505:
 
 [jmx_exporter](https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/0.16.0/jmx_prometheus_javaagent-0.16.0.jar)
 [zookeeper优化](https://blog.csdn.net/qq_31547771/article/details/105813318)
+[zk参数](https://blog.csdn.net/weixin_38424594/article/details/112986217)

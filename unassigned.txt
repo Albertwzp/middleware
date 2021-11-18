@@ -1,0 +1,41 @@
+AUTH=$(echo -n 'index:Z7yTouAmVCGVtuOpIxXC'|base64)
+curl -X GET --user index:Z7yTouAmVCGVtuOpIxXC http://s.s.s.s:9200/_cluster/health?pretty
+curl -XGET --user index:Z7yTouAmVCGVtuOpIxXC http://s.s.s.s:9200/_cat/shards?h=index,shard,prirep,state,unassigned.reason| grep UNASSIGNED
+curl -X GET --user index:Z7yTouAmVCGVtuOpIxXC http://s.s.s.s:9200/_cluster/allocation/explain?pretty
+curl -s --user index:Z7yTouAmVCGVtuOpIxXC -XGET s.s.s.s:9200/_cat/indices?v|grep red|awk '{print $3}'
+curl -s --user index:Z7yTouAmVCGVtuOpIxXC "d.d.d.d:9200/_cat/shards/indices"
+
+curl -XPUT --user index:Z7yTouAmVCGVtuOpIxXC "x.x.x.x:9200/_all/_settings?pretty" -H 'Content-Type: application/json' -d'
+{
+  "settings": {
+     "index.unassigned.node_left.delayed_timeout": "5m"
+  }
+}'
+
+curl -XPUT --user index:Z7yTouAmVCGVtuOpIxXC  "http://s.s.s.s:9200/_cluster/settings?pretty" -H 'Content-Type: application/json' -d'
+{
+    "transient" : {
+        "cluster.routing.allocation.enable" : "all"
+    }
+}
+
+# reroutes
+NODE="node-cold-data03"
+IFS=$'\n'
+for line in $(curl -s --user index:Z7yTouAmVCGVtuOpIxXC 'd.d.d.d:9200/_cat/shards' | fgrep UNASSIGNED); do
+  INDEX=$(echo $line | (awk '{print $1}'))
+  SHARD=$(echo $line | (awk '{print $2}'))
+
+curl -XPOST --user index:Z7yTouAmVCGVtuOpIxXC 'd.d.d.d:9200/_cluster/reroute?pretty' -H 'Content-Type: application/json' -d '{
+     "commands": [
+        {
+            "allocate_empty_primary": {
+                "index": "'$INDEX'",
+                "shard": '$SHARD',
+                "node": "'$NODE'",
+                "accept_data_loss": true
+          }
+        }
+    ]
+  }'
+done
